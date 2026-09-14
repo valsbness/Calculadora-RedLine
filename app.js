@@ -17,8 +17,8 @@ const SERVICES = [
   ['NEUMÁTICOS','Offroad','Neumáticos Offroad',7000],
   ['STANCE','Stance o suspensión','Kit de Stance',10000],
   ['EXTRAS','Extras','Modificaciones adicionales',10000],
-  ['NITRO','Nitro','Sistema de Nitro',0],
-  ['NITRO','Botella de Nitro','Botella de Nitro',0]
+  ['NITRO','Nitro','Sistema de Nitro',1000000],
+  ['NITRO','Botella de Nitro','Botella de Nitro',200000]
 ].map((x,i)=>({id:i,category:x[0],name:x[1],detail:x[2],price:x[3]}));
 
 const PACKAGES = [
