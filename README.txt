@@ -1,6 +1,6 @@
-REDLINE - Calculadora integrada con Benny's
+REDLINE - Calculadora integrada.
 
-Esta versión conserva el diseño de la Calculadora RedLine y agrega los elementos de la Calculadora Benny's que faltaban.
+Esta versión es el diseño de RedLine y agrega los elementos de la Calculadora Benny's.
 
 Incluidos desde Benny's:
 - Kit de reparación: $1,000
