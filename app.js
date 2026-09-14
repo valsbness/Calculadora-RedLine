@@ -15,32 +15,57 @@ const SERVICES = [
 
 const money=n=>'$'+new Intl.NumberFormat('es-ES').format(n);
 const state=new Array(SERVICES.length).fill(0);
-const services=document.getElementById('services'), full=document.getElementById('fullServices');
+const services=document.getElementById('services');
+
 function render(filter=''){
-  services.innerHTML=''; full.innerHTML='';
-  const q=filter.toLowerCase();
+  services.innerHTML='';
+  const q=filter.toLowerCase().trim();
   const cats=[...new Set(SERVICES.map(x=>x.category))];
+  let visible=0;
   cats.forEach(cat=>{
-    const list=SERVICES.map((x,i)=>({...x,i})).filter(x=>x.category===cat && (x.name+' '+x.detail).toLowerCase().includes(q));
+    const list=SERVICES.map((x,i)=>({...x,i})).filter(x=>x.category===cat && (x.name+' '+x.detail+' '+x.category).toLowerCase().includes(q));
     if(!list.length)return;
-    const wrap=document.createElement('div'); wrap.className='category';
+    visible+=list.length;
+    const wrap=document.createElement('div');
+    wrap.className='category';
     wrap.innerHTML=`<div class="cat-title">${cat}</div>`;
     list.forEach(x=>{
-      const row=document.createElement('div'); row.className='service';
-      row.innerHTML=`<div class="service-name"><strong>${x.name}</strong><small>${x.detail}</small></div><input class="qty" type="number" min="0" step="1" value="${state[x.i]}" data-i="${x.i}"><div class="price">${money(x.price)}</div><div class="price line-total" id="line-${x.i}">${money(x.price*state[x.i])}</div>`;
+      const row=document.createElement('div');
+      row.className='service';
+      row.innerHTML=`<div class="service-name"><strong>${x.name}</strong><small>${x.detail}</small></div><input aria-label="Cantidad de ${x.name}" class="qty" type="number" min="0" step="1" value="${state[x.i]}" data-i="${x.i}"><div class="price">${money(x.price)}</div><div class="price line-total" id="line-${x.i}">${money(x.price*state[x.i])}</div>`;
       wrap.appendChild(row);
     });
     services.appendChild(wrap);
   });
-  const all=SERVICES.map((x,i)=>({...x,i}));
-  all.forEach(x=>{const row=document.createElement('div');row.className='service';row.innerHTML=`<div class="service-name"><strong>${x.name}</strong><small>${x.category} • ${x.detail}</small></div><div></div><div class="price">${money(x.price)}</div><div class="price">${money(x.price*state[x.i])}</div>`;full.appendChild(row)});
-  document.querySelectorAll('.qty').forEach(inp=>inp.addEventListener('input',e=>{state[+e.target.dataset.i]=Math.max(0,Number(e.target.value)||0);update()}));
+  if(!visible)services.innerHTML='<div class="empty">No se encontró ningún servicio.</div>';
+  document.querySelectorAll('.qty').forEach(inp=>inp.addEventListener('input',e=>{
+    state[+e.target.dataset.i]=Math.max(0,Math.floor(Number(e.target.value)||0));
+    if(e.target.value!==String(state[+e.target.dataset.i]))e.target.value=state[+e.target.dataset.i];
+    update();
+  }));
   update();
 }
-function update(){let total=0;SERVICES.forEach((x,i)=>{total+=x.price*state[i];const el=document.getElementById('line-'+i);if(el)el.textContent=money(x.price*state[i]);});document.getElementById('grand').textContent=money(total);document.getElementById('d5').textContent=money(total*.95);document.getElementById('d10').textContent=money(total*.90);document.getElementById('d15').textContent=money(total*.85)}
+
+function update(){
+  let total=0;
+  SERVICES.forEach((x,i)=>{
+    total+=x.price*state[i];
+    const el=document.getElementById('line-'+i);
+    if(el)el.textContent=money(x.price*state[i]);
+  });
+  document.getElementById('grand').textContent=money(total);
+  document.getElementById('d5').textContent=money(total*.95);
+  document.getElementById('d10').textContent=money(total*.90);
+  document.getElementById('d15').textContent=money(total*.85);
+}
+
 document.getElementById('search').addEventListener('input',e=>render(e.target.value));
 function reset(){state.fill(0);render(document.getElementById('search').value)}
-document.getElementById('clear').onclick=reset;document.getElementById('reset').onclick=reset;
-document.getElementById('copy').onclick=()=>{const text=document.getElementById('grand').textContent;navigator.clipboard?.writeText(text);const t=document.getElementById('toast');t.textContent='Monto copiado: '+text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)};
-document.querySelectorAll('.nav button').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));document.getElementById(btn.dataset.view).classList.remove('hidden');const titles={calc:['Calculadora de Servicios','Calcula reparaciones, mejoras y servicios de Redline de forma rápida y precisa.'],full:['Vista Completa','Todos los servicios y mejoras configurados para Redline.'],info:['Información','Herramienta interna para el cálculo de servicios de Redline.']};document.getElementById('title').textContent=titles[btn.dataset.view][0];document.getElementById('subtitle').textContent=titles[btn.dataset.view][1]});
+document.getElementById('clear').onclick=reset;
+document.getElementById('reset').onclick=reset;
+document.getElementById('copy').onclick=async()=>{
+  const text=document.getElementById('grand').textContent;
+  try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
+  const t=document.getElementById('toast');t.textContent='Monto copiado: '+text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);
+};
 render();
